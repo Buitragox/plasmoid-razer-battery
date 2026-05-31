@@ -1,0 +1,17 @@
+{
+  "KPlugin": {
+    "Name": "Razer Mouse Battery",
+    "Description": "Shows Razer mouse battery via OpenRazer",
+    "Category": "System Information",
+    "Id": "com.github.buitragox.razerbattery",
+    "Icon": "battery-good",
+    "Authors": [
+      {
+        "Name": "Jhoan Buitrago",
+        "Email": "jhoanuitrago@gmail.com"
+      }
+    ]
+  },
+  "X-Plasma-API-Minimum-Version": "6.0",
+  "KPackageStructure": "Plasma/Applet"
+}
