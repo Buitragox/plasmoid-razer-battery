@@ -2,6 +2,8 @@
 
 Simple widget for displaying the battery of your razer mouse in Plasma6 Desktop.
 
+![Example image](images/full-battery-charging.png)
+
 ## Install
 
 First, clone the repo and install the widget:
