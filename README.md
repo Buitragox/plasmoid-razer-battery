@@ -25,3 +25,7 @@ After updating the repo (or making changes yourself):
 ```sh
 kpackagetool6 -t Plasma/Applet -u ./package
 ```
+
+To apply the update you can: 
+- Restart your session
+- or run `plasmashell --replace`
