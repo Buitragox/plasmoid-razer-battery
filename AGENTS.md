@@ -16,8 +16,9 @@ A KDE Plasma 6 widget (plasmoid/applet) that displays battery information for a 
 ```
 .
 ├── CMakeLists.txt          # Top-level CMake config
-├── run.sh                  # Build, install, and launch script
+├── Makefile                # Build/install/run targets
 ├── .clangd                 # clangd LSP configuration
+├── .qmlls.ini              # QML language server configuration (import paths)
 ├── package/                # Plasma package (QML + metadata)
 │   ├── metadata.json       # Plugin metadata (name, id, icon, etc.)
 │   └── contents/
@@ -25,7 +26,8 @@ A KDE Plasma 6 widget (plasmoid/applet) that displays battery information for a 
 │           └── main.qml    # Widget UI (compact: icon, full: label with %)
 ├── plugin/                 # C++ QML plugin
 │   ├── CMakeLists.txt      # Builds shared lib `razerbatteryplugin`
-│   ├── qmldir              # QML module registration
+│   ├── qmldir              # QML module registration + typeinfo reference
+│   ├── plugins.qmltypes    # Type info for QML tooling (qmlls, IDE support)
 │   ├── razerbattery.h/.cpp # RazerBattery class — polls D-Bus for battery state
 │   ├── razerplugin.h/.cpp  # QQmlExtensionPlugin — registers RazerBattery type
 └── build/                  # Build output (gitignored)
@@ -43,7 +45,8 @@ A KDE Plasma 6 widget (plasmoid/applet) that displays battery information for a 
 - **Service:** `org.razer`
 - **Path:** `/org/razer/device/<serial>` (currently hardcoded — TODO: make dynamic)
 - **Interface:** `razer.device.power`
-- **Methods called:** `getBattery()` → int, `isCharging()` → bool
+- **Methods called:** `getBattery()` → double (0–100), `isCharging()` → bool
+- Both methods are always available together on this interface.
 
 ### QML UI (`package/contents/ui/main.qml`)
 - Compact representation: battery icon (changes based on level and charging state)
@@ -52,19 +55,26 @@ A KDE Plasma 6 widget (plasmoid/applet) that displays battery information for a 
 
 ## Build & Run
 ```sh
-./run.sh
+make install   # build + install
+make run       # build + install + launch plasmoidviewer
+make clean     # remove build directory
 ```
-This does: `cmake -B build` → `cmake --build build` → `sudo cmake --install build` → `plasmoidviewer -a com.github.buitragox.razerbattery`
+
+**Important:** `KDE_INSTALL_QMLDIR` must match Qt6's actual QML import path (check with `qtpaths6 --query QT_INSTALL_QML`). ECM's default may differ.
 
 CMake is configured to always generate `compile_commands.json` (for clangd).
 
 ## Known TODOs
 - Device path is hardcoded — should be dynamic/configurable
-- `isCharging()` may not be available for all mice — needs fallback
-- The `Qt6::DBus` find_package has a TODO about whether it can be removed (it cannot — it's essential)
 
 ## Dependencies (system packages)
-- Qt 6.6+: Core, Qml, DBus, Gui, Quick
-- KDE Frameworks 6: ECM, KI18n, Kirigami
+- Qt 6.6+: Core, Qml, DBus, Quick
+- KDE Frameworks 6: ECM, Kirigami
 - Plasma 6 libraries
 - OpenRazer daemon running with D-Bus session bus
+
+## Dev Environment
+- **C++ LSP:** clangd — configured via `.clangd` to use `build/compile_commands.json`
+- **QML LSP:** qmlls — configured via `.qmlls.ini` (import paths + build dir)
+- **QML type info:** `plugin/plugins.qmltypes` describes C++ types for qmlls; referenced from `qmldir` via `typeinfo` directive
+- After `make install`, restart qmlls if it doesn't pick up changes to the installed `.qmltypes` file

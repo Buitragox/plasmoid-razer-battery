@@ -1,19 +1,25 @@
 # Razer Mouse Battery Widget
 
-Simple widget for displaying the battery of your razer mouse in Plasma6 Desktop.
+Simple widget for displaying the battery of your Razer mouse in Plasma 6 Desktop. Communicates with the [OpenRazer](https://openrazer.github.io/) daemon over D-Bus.
 
 ![Example image](images/full-battery-charging.png)
 
+## Dependencies
+
+- Qt 6.6+
+- KDE Frameworks 6 (ECM, Kirigami)
+- Plasma 6
+- [OpenRazer](https://openrazer.github.io/) daemon running
+
 ## Install
 
-First, clone the repo and install the widget:
 ```sh
 git clone https://github.com/Buitragox/plasmoid-razer-mouse-battery.git
 cd plasmoid-razer-mouse-battery
-kpackagetool6 -t Plasma/Applet -i ./package
+make install
 ```
 
-Then:
+This builds and installs both the C++ plugin and the QML package. You can then add the widget to your panel:
 
 1. Right click your task bar
 2. "Add or Manage Widgets"
@@ -21,11 +27,19 @@ Then:
 4. Drag and drop it to your task bar.
 
 ## Upgrade
-After updating the repo (or making changes yourself):
-```sh
-kpackagetool6 -t Plasma/Applet -u ./package
-```
 
-To apply the update you can: 
+After updating the repo (or making changes yourself), run `make install` again.
+
+To apply the update you can:
 - Restart your session
 - or run `plasmashell --replace`
+
+## Configuration
+
+Currently the device serial is hardcoded in `plugin/razerbattery.cpp`. To find your device serial:
+
+```sh
+busctl --user tree org.razer --list | grep '^/org/razer/device/'
+```
+
+Replace the path in the source with your device's serial and rebuild.
