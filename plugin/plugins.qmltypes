@@ -1,0 +1,21 @@
+import QtQuick.tooling 1.2
+
+// This file describes the plugin-supplied types contained in the library.
+// It is used for QML tooling purposes only (qmlls, IDE support).
+
+Module {
+    Component {
+        name: "RazerBattery"
+        prototype: "QObject"
+        exports: ["com.github.buitragox.private.razerbattery/RazerBattery 1.0"]
+        exportMetaObjectRevisions: [256]
+
+        Property { name: "batteryPercent"; type: "int"; isReadonly: true }
+        Property { name: "icon"; type: "string"; isReadonly: true }
+
+        Signal { name: "batteryPercentChanged" }
+        Signal { name: "iconChanged" }
+
+        Method { name: "refresh" }
+    }
+}

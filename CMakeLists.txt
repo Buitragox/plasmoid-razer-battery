@@ -18,17 +18,12 @@ include(FeatureSummary)
 find_package(Qt6 ${QT_MIN_VERSION} REQUIRED COMPONENTS
     Core
     Qml
-    DBus # TODO: check if this can be removed
-    Gui
+    DBus
     Quick
 )
 
 find_package(KF6 ${KF_MIN_VERSION} REQUIRED COMPONENTS
-    # Package
-    I18n
-    # Plasma
     Kirigami
-    # Notifications
 )
 
 find_package(Plasma CONFIG REQUIRED)

@@ -1,2 +1,3 @@
 module com.github.buitragox.private.razerbattery
 plugin razerbatteryplugin
+typeinfo plugins.qmltypes
