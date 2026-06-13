@@ -2,7 +2,7 @@
 
 Simple widget for displaying the battery of your Razer device in Plasma 6 Desktop. Communicates with the [OpenRazer](https://openrazer.github.io/) daemon over D-Bus.
 
-![Example image](images/full-battery-charging.png)
+![Example image](images/example-charging.png)
 
 ## Dependencies
 
