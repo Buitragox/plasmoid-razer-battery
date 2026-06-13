@@ -24,9 +24,9 @@ PlasmoidItem {
     }
 
     fullRepresentation: PlasmaComponents.Label {
-        text: root.batteryPercent >= 0 ? "Mouse battery: " + root.batteryPercent + "%" : "Mouse battery unavailable"
+        text: root.batteryPercent >= 0 ? "Battery: " + root.batteryPercent + "%" : "Battery unavailable"
     }
 
-    toolTipMainText: "Razer Mouse Battery"
+    toolTipMainText: "Razer Battery"
     toolTipSubText: razerBattery.batteryPercent >= 0 ? razerBattery.batteryPercent + "%" : "Unavailable"
 }

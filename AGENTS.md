@@ -1,7 +1,7 @@
-# Project: Razer Mouse Battery Plasmoid
+# Project: Razer Battery Plasmoid
 
 ## Overview
-A KDE Plasma 6 widget (plasmoid/applet) that displays battery information for a Razer mouse by communicating with the [OpenRazer](https://openrazer.github.io/) daemon over D-Bus.
+A KDE Plasma 6 widget (plasmoid/applet) that displays battery information for a Razer device by communicating with the [OpenRazer](https://openrazer.github.io/) daemon over D-Bus.
 
 **Applet ID:** `com.github.buitragox.razerbattery`
 **Author:** Jhoan Buitrago

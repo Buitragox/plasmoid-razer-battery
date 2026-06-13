@@ -1,7 +1,7 @@
 {
   "KPlugin": {
-    "Name": "Razer Mouse Battery",
-    "Description": "Shows Razer mouse battery via OpenRazer",
+    "Name": "Razer Battery",
+    "Description": "Shows Razer device battery via OpenRazer",
     "Category": "System Information",
     "Id": "com.github.buitragox.razerbattery",
     "Icon": "battery-good",

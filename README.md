@@ -1,6 +1,6 @@
-# Razer Mouse Battery Widget
+# Razer Battery Widget
 
-Simple widget for displaying the battery of your Razer mouse in Plasma 6 Desktop. Communicates with the [OpenRazer](https://openrazer.github.io/) daemon over D-Bus.
+Simple widget for displaying the battery of your Razer device in Plasma 6 Desktop. Communicates with the [OpenRazer](https://openrazer.github.io/) daemon over D-Bus.
 
 ![Example image](images/full-battery-charging.png)
 
@@ -14,8 +14,8 @@ Simple widget for displaying the battery of your Razer mouse in Plasma 6 Desktop
 ## Install
 
 ```sh
-git clone https://github.com/Buitragox/plasmoid-razer-mouse-battery.git
-cd plasmoid-razer-mouse-battery
+git clone https://github.com/Buitragox/plasmoid-razer-battery.git
+cd plasmoid-razer-battery
 make install
 ```
 
@@ -31,7 +31,7 @@ This builds and installs both the C++ plugin and the QML package. You can then a
 After updating the repo (or making changes yourself), run `make install` again.
 
 To apply the update you can:
-- Restart your session
+- Restart your session (log out and log back in).
 - or run `plasmashell --replace`
 
 ## Configuration
