@@ -1,0 +1,31 @@
+---
+Checks: >
+  *,
+  -fuchsia-*,
+  -google-*,
+  -zircon-*,
+  -abseil-*,
+  -llvm-*,
+  -llvmlibc-*,
+  -modernize-use-trailing-return-type,
+  -readability-magic-numbers,
+  -cppcoreguidelines-avoid-magic-numbers,
+  -portability-avoid-pragma-once
+
+WarningsAsErrors: '*'
+
+HeaderFilterRegex: 'plugin/.*\.h$'
+
+FormatStyle: none
+
+CheckOptions:
+  - key: misc-non-private-member-variables-in-classes
+    value: IgnoreClassesWithAllMemberVariablesBeingPublic
+  - key: readability-identifier-naming.ClassCase
+    value: CamelCase
+  - key: readability-identifier-naming.FunctionCase
+    value: camelBack
+  - key: readability-identifier-naming.VariableCase
+    value: camelBack
+  - key: readability-identifier-naming.PrivateMemberPrefix
+    value: m_

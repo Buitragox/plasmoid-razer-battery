@@ -16,7 +16,9 @@ A KDE Plasma 6 widget (plasmoid/applet) that displays battery information for a 
 ```
 .
 ├── CMakeLists.txt          # Top-level CMake config
-├── Makefile                # Build/install/run targets
+├── Makefile                # Build/install/run/format/tidy targets
+├── .clang-format           # clang-format configuration (C++17, 4-space indent, 120 col)
+├── .clang-tidy             # clang-tidy configuration (checks, naming conventions)
 ├── .clangd                 # clangd LSP configuration
 ├── .qmlls.ini              # QML language server configuration (import paths)
 ├── package/                # Plasma package (QML + metadata)
@@ -37,16 +39,18 @@ A KDE Plasma 6 widget (plasmoid/applet) that displays battery information for a 
 ## Architecture
 
 ### C++ Plugin (`plugin/`)
-- **RazerBattery** (`QObject`): Exposes `batteryPercent` (int) and `icon` (QString) as Q_PROPERTY. Polls the OpenRazer D-Bus interface every 30 seconds. Has a `Q_INVOKABLE refresh()` method.
+- **RazerBattery** (`QObject`): Exposes `batteryPercent` (int) and `icon` (QString) as Q_PROPERTY. Polls the OpenRazer D-Bus interface every 30 seconds. Has a `Q_INVOKABLE refresh()` method. Dynamically discovers the first connected device via `getDevices()` and re-resolves if it disconnects.
 - **RazerPlugin** (`QQmlExtensionPlugin`): Registers `RazerBattery` as a QML type under the URI `com.github.buitragox.private.razerbattery`.
 - The compiled shared library is installed to the QML import path.
 
 ### D-Bus Interface
 - **Service:** `org.razer`
-- **Path:** `/org/razer/device/<serial>` (currently hardcoded — TODO: make dynamic)
+- **Path:** `/org/razer/device/<serial>` (resolved dynamically via `razer.devices.getDevices()`)
 - **Interface:** `razer.device.power`
-- **Methods called:** `getBattery()` → double (0–100), `isCharging()` → bool
-- Both methods are always available together on this interface.
+- **Methods called:**
+  - `razer.devices.getDevices()` → QStringList (serial numbers) — on `/org/razer`
+  - `razer.device.power.getBattery()` → double (0–100) — on `/org/razer/device/<serial>`
+  - `razer.device.power.isCharging()` → bool — on `/org/razer/device/<serial>`
 
 ### QML UI (`package/contents/ui/main.qml`)
 - Compact representation: battery icon (changes based on level and charging state)
@@ -58,6 +62,8 @@ A KDE Plasma 6 widget (plasmoid/applet) that displays battery information for a 
 make install   # build + install
 make run       # build + install + launch plasmoidviewer
 make clean     # remove build directory
+make format    # run clang-format on plugin/*.h and plugin/*.cpp
+make tidy      # run clang-tidy on plugin/*.cpp (requires build)
 ```
 
 **Important:** `KDE_INSTALL_QMLDIR` must match Qt6's actual QML import path (check with `qtpaths6 --query QT_INSTALL_QML`). ECM's default may differ.
@@ -65,7 +71,7 @@ make clean     # remove build directory
 CMake is configured to always generate `compile_commands.json` (for clangd).
 
 ## Known TODOs
-- Device path is hardcoded — should be dynamic/configurable
+- Add settings UI to select a specific device when multiple are connected
 
 ## Dependencies (system packages)
 - Qt 6.6+: Core, Qml, DBus, Quick

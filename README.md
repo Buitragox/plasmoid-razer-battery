@@ -36,10 +36,6 @@ To apply the update you can:
 
 ## Configuration
 
-Currently the device serial is hardcoded in `plugin/razerbattery.cpp`. To find your device serial:
+The widget automatically discovers connected Razer devices via `razer.devices.getDevices()` and uses the first one found. If the device disconnects, it will re-resolve on the next poll cycle.
 
-```sh
-busctl --user tree org.razer --list | grep '^/org/razer/device/'
-```
-
-Replace the path in the source with your device's serial and rebuild.
+A future update will add a settings UI to select a specific device when multiple are connected.

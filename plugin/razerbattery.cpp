@@ -1,13 +1,19 @@
 #include "razerbattery.h"
+#include "qtmetamacros.h"
 
+#include <qcontainerfwd.h>
 #include <QDBusConnection>
 #include <QDBusInterface>
 #include <QDBusReply>
-#include <QtGlobal>
+#include <QLatin1Char>
+#include <QString>
+#include <QStringList>
+#include <QStringLiteral>
+#include <QTimer>
+#include <QtLogging>
+#include <QtMinMax>
 
-RazerBattery::RazerBattery(QObject *parent)
-    : QObject(parent)
-{
+RazerBattery::RazerBattery(QObject* parent) : QObject(parent) {
     connect(&m_timer, &QTimer::timeout, this, &RazerBattery::refresh);
     m_timer.setInterval(30'000);
     m_timer.start();
@@ -15,46 +21,78 @@ RazerBattery::RazerBattery(QObject *parent)
     refresh();
 }
 
-int RazerBattery::batteryPercent() const
-{
+int RazerBattery::batteryPercent() const {
     return m_batteryPercent;
 }
 
-QString RazerBattery::icon() const
-{
+QString RazerBattery::icon() const {
     return m_icon;
 }
 
-void RazerBattery::refresh()
-{
+bool RazerBattery::resolveDevicePath() {
+    if (!m_devicePath.isEmpty()) {
+        return true;
+    }
+
     const QString service = QStringLiteral("org.razer");
+    const QString path = QStringLiteral("/org/razer");
+    const QString interface = QStringLiteral("razer.devices");
 
-    // TODO: Make this dynamic/configurable
-    const QString path = QStringLiteral("/org/razer/device/632305H15702820");
-    const QString interface = QStringLiteral("razer.device.power");
+    QDBusInterface devicesInterface(service, path, interface, QDBusConnection::sessionBus());
 
-    QDBusInterface razerInterface(
-        service,
-        path,
-        interface,
-        QDBusConnection::sessionBus()
-    );
+    if (!devicesInterface.isValid()) {
+        qWarning() << "[RazerBattery] D-Bus devices interface not valid." << devicesInterface.lastError().name()
+                   << devicesInterface.lastError().message();
+        return false;
+    }
 
-    if (!razerInterface.isValid()) {
-        qWarning() << "[RazerBattery] D-Bus interface not valid."
-                   << razerInterface.lastError().name()
-                   << razerInterface.lastError().message();
+    const QDBusReply<QStringList> reply = devicesInterface.call(QStringLiteral("getDevices"));
+
+    if (!reply.isValid()) {
+        qWarning() << "[RazerBattery] getDevices() failed:" << reply.error().name() << reply.error().message();
+        return false;
+    }
+
+    const QStringList devices = reply.value();
+
+    if (devices.isEmpty()) {
+        qWarning() << "[RazerBattery] No Razer devices found.";
+        return false;
+    }
+
+    m_devicePath = QStringLiteral("/org/razer/device/%1").arg(devices.first());
+    qInfo() << "[RazerBattery] Using device path:" << m_devicePath;
+
+    return true;
+}
+
+void RazerBattery::refresh() {
+    if (!resolveDevicePath()) {
         setBatteryPercent(-1);
         setCharging(false);
         return;
     }
 
-    QDBusReply<double> batteryReply =
-        razerInterface.call(QStringLiteral("getBattery"));
+    const QString service = QStringLiteral("org.razer");
+    const QString interface = QStringLiteral("razer.device.power");
+
+    QDBusInterface razerInterface(service, m_devicePath, interface, QDBusConnection::sessionBus());
+
+    if (!razerInterface.isValid()) {
+        qWarning() << "[RazerBattery] D-Bus interface not valid." << razerInterface.lastError().name()
+                   << razerInterface.lastError().message();
+        // Device may have disconnected; clear the path so we re-resolve next
+        // time.
+        m_devicePath.clear();
+        setBatteryPercent(-1);
+        setCharging(false);
+        return;
+    }
+
+    const QDBusReply<double> batteryReply = razerInterface.call(QStringLiteral("getBattery"));
 
     if (!batteryReply.isValid()) {
-        qWarning() << "[RazerBattery] getBattery() failed:"
-                   << batteryReply.error().name()
+        qWarning() << "[RazerBattery] getBattery() failed:" << batteryReply.error().name()
                    << batteryReply.error().message();
         setBatteryPercent(-1);
         setCharging(false);
@@ -65,21 +103,18 @@ void RazerBattery::refresh()
 
     // isCharging() is always available on the razer.device.power interface
     // alongside getBattery().
-    QDBusReply<bool> chargingReply =
-        razerInterface.call(QStringLiteral("isCharging"));
+    const QDBusReply<bool> chargingReply = razerInterface.call(QStringLiteral("isCharging"));
 
     if (chargingReply.isValid()) {
         setCharging(chargingReply.value());
     } else {
-        qWarning() << "[RazerBattery] isCharging() failed:"
-                   << chargingReply.error().name()
+        qWarning() << "[RazerBattery] isCharging() failed:" << chargingReply.error().name()
                    << chargingReply.error().message();
         setCharging(false);
     }
 }
 
-void RazerBattery::setBatteryPercent(int value)
-{
+void RazerBattery::setBatteryPercent(int value) {
     value = qBound(-1, value, 100);
 
     if (m_batteryPercent == value) {
@@ -92,8 +127,7 @@ void RazerBattery::setBatteryPercent(int value)
     updateIcon();
 }
 
-void RazerBattery::setCharging(bool value)
-{
+void RazerBattery::setCharging(bool value) {
     if (m_charging == value) {
         return;
     }
@@ -102,13 +136,14 @@ void RazerBattery::setCharging(bool value)
     updateIcon();
 }
 
-void RazerBattery::updateIcon()
-{
+void RazerBattery::updateIcon() {
     const QString previousIcon = m_icon;
 
     if (m_batteryPercent < 0) {
         m_icon = QStringLiteral("battery-missing");
     } else {
+        // Ceiling-round to the nearest 10 to match available icon levels
+        // (battery-010, battery-020, ..., battery-100).
         int bucket = ((m_batteryPercent + 9) / 10) * 10;
         bucket = qBound(10, bucket, 100);
 
