@@ -1,66 +1,32 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
-import QtQuick.Layouts
-import org.kde.kirigami as Kirigami
 import org.kde.plasma.plasmoid
 import org.kde.plasma.components as PlasmaComponents
-import org.kde.plasma.plasma5support as Plasma5Support
+import org.kde.kirigami as Kirigami
+
+import com.github.buitragox.private.razerbattery as Razer
 
 PlasmoidItem {
-    id: main
+    id: root
 
-    // Internal state
-    property int batteryLevel: 0
-    property string icon: "battery-missing"
+    property alias batteryPercent: razerBattery.batteryPercent
+    property alias batteryIcon: razerBattery.icon
 
-    // Timer to refresh every 30 seconds
-    Timer {
-        id: timer
-        interval: 30000
-        running: true
-        repeat: true
-        triggeredOnStart: true
-        onTriggered: executable.exec()
+    Razer.RazerBattery {
+        id: razerBattery
     }
 
-    Plasma5Support.DataSource {
-        id: executable
-        engine: "executable"
-        connectedSources: []
-        onNewData: (sourceName, data) => {
-            try {
-                console.log("data:", data.stdout)
-                let res = JSON.parse(data.stdout);
-                main.batteryLevel = res.percentage;
-                main.icon = res.icon;
-            } catch (e) {
-                console.log("Error parsing Razer battery data:", e);
-                console.log(data.stdout);
-            }
-            disconnectSource(sourceName);
-        }
-
-        function exec() {
-            const url = Qt.resolvedUrl("../../mouse_battery.py")
-            const path = String(url).replace("file://", "")
-            connectSource(path);
-        }
+    compactRepresentation: Kirigami.Icon {
+        source: root.batteryIcon
+        implicitWidth: Kirigami.Units.iconSizes.smallMedium
+        implicitHeight: Kirigami.Units.iconSizes.smallMedium
     }
 
-    // The visual representation in the panel
-    RowLayout {
-        anchors.centerIn: parent
-        spacing: 6
-
-        PlasmaComponents.Label {
-            text: main.batteryLevel + "%"
-            // color: main.batteryLevel < 15 ? "red" : "white"
-        }
-        Kirigami.Icon {
-            source: main.icon
-            implicitWidth: 16
-            implicitHeight: 16
-        }
+    fullRepresentation: PlasmaComponents.Label {
+        text: root.batteryPercent >= 0 ? "Battery: " + root.batteryPercent + "%" : "Battery unavailable"
     }
+
+    toolTipMainText: "Razer Battery"
+    toolTipSubText: razerBattery.batteryPercent >= 0 ? razerBattery.batteryPercent + "%" : "Unavailable"
 }

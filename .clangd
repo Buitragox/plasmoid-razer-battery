@@ -1,0 +1,11 @@
+CompileFlags:
+  CompilationDatabase: build/
+  Remove: [-mno-direct-extern-access]
+
+Diagnostics:
+  UnusedIncludes: Strict
+
+InlayHints:
+  Enabled: Yes
+  ParameterNames: Yes
+  DeducedTypes: Yes
